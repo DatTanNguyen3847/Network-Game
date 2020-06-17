@@ -23,6 +23,7 @@ public class PlayerControl : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
         Time.fixedDeltaTime = 1 / 100f;
     }
 
@@ -33,6 +34,10 @@ public class PlayerControl : MonoBehaviour
         MovePlayer();
         ControlCamHead();
     }
+    private void FixedUpdate()
+    {
+      
+    }
 
     void MovePlayer()
     {
@@ -41,6 +46,7 @@ public class PlayerControl : MonoBehaviour
         {
             gravityF.y = -5;
         }
+        
 
         Vector3 move = selfplayer.transform.forward * Input.GetAxis("Vertical") + selfplayer.transform.right * Input.GetAxis("Horizontal");
         selfplayer.Move(move *speed* Time.deltaTime);
@@ -52,8 +58,10 @@ public class PlayerControl : MonoBehaviour
                 gravityF.y = jumpHeight;
             }
         }
+        
         gravityF.y -= gravity * Time.deltaTime;
         selfplayer.Move(gravityF * Time.deltaTime);
+        
     }
 
     void ControlCamHead()
