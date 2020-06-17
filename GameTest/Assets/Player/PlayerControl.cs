@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerControl : MonoBehaviour
 {
@@ -11,9 +12,13 @@ public class PlayerControl : MonoBehaviour
     public float jumpHeight;
    public Vector3 gravityF;
     bool OnGround = false;
+    Vector3 move;
     public Transform spherePosition;
     public float sphereRadius;
     public LayerMask groundlayer;
+    public Image UIcrosshair;
+     
+    public Vector4 StartColor, AffectedColor;
     [Header("CameraHead Control")]
     public Transform CamHeadParent;
     public Camera cam;
@@ -25,6 +30,7 @@ public class PlayerControl : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Time.fixedDeltaTime = 1 / 100f;
+    //    StartColor = UIcrosshair.color;
     }
 
     // Update is called once per frame
@@ -33,6 +39,9 @@ public class PlayerControl : MonoBehaviour
         CheckGround();
         MovePlayer();
         ControlCamHead();
+        Run();
+        AdjustUICrossHair();
+        AdjustFOWCam();
     }
     private void FixedUpdate()
     {
@@ -48,7 +57,7 @@ public class PlayerControl : MonoBehaviour
         }
         
 
-        Vector3 move = selfplayer.transform.forward * Input.GetAxis("Vertical") + selfplayer.transform.right * Input.GetAxis("Horizontal");
+      move= selfplayer.transform.forward * Input.GetAxis("Vertical") + selfplayer.transform.right * Input.GetAxis("Horizontal");
         selfplayer.Move(move *speed* Time.deltaTime);
     
         if (OnGround)
@@ -79,5 +88,48 @@ public class PlayerControl : MonoBehaviour
         OnGround = Physics.CheckSphere(spherePosition.transform.position, sphereRadius, groundlayer);
        
         return OnGround;
+    }
+
+    bool canRun = false;
+    void Run()
+    {
+        if(Input.GetKey(KeyCode.LeftShift)&& move != Vector3.zero)
+        {
+            canRun = true;
+            speed = 3.5f;
+        }
+        else
+        {
+            canRun = false;
+            speed = 1.5f;
+        }
+    }
+
+    float fow;
+    void AdjustFOWCam()
+    {
+        if (canRun)
+        {
+            fow = Mathf.Lerp(fow, 70f, 8f * Time.deltaTime);
+        }
+        else
+        {
+            fow = Mathf.Lerp(fow, 60f, 8f * Time.deltaTime);
+        }
+        cam.fieldOfView = fow;
+    }
+
+
+    void AdjustUICrossHair()
+    {
+        if (canRun)
+        {
+
+            UIcrosshair.color = AffectedColor;
+        }
+        else
+        {
+            UIcrosshair.color = StartColor;
+        }
     }
 }

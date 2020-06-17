@@ -840,7 +840,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selfplayer: {fileID: 1166446046}
-  speed: 3
+  speed: 1.5
   gravity: 22
   jumpHeight: 7
   gravityF: {x: 0, y: -5.3235373, z: 0}
@@ -849,6 +849,9 @@ MonoBehaviour:
   groundlayer:
     serializedVersion: 2
     m_Bits: 256
+  UIcrosshair: {fileID: 1658203902}
+  StartColor: {x: 0, y: 0.4, z: 1, w: 1}
+  AffectedColor: {x: 0, y: 0.4, z: 1, w: 0.5}
   CamHeadParent: {fileID: 2147069899}
   cam: {fileID: 963194227}
   rotationSpeed: 22
@@ -1084,7 +1087,7 @@ GameObject:
   - component: {fileID: 1658203903}
   - component: {fileID: 1658203902}
   m_Layer: 0
-  m_Name: Image
+  m_Name: CrossHairPlaceHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
