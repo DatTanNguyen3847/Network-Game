@@ -78,6 +78,7 @@ public class PlayerControl : MonoBehaviour
         CamHeadParent.transform.position = CamHeadPosition.transform.position;
         X += Input.GetAxis("Mouse X") * rotationSpeed*10f * Time.deltaTime;
         Y -= Input.GetAxis("Mouse Y") * rotationSpeed*10f * Time.deltaTime;
+        Y = Mathf.Clamp(Y, -70f, 70f);
         Quaternion rot = Quaternion.Euler(new Vector3(Y, X, 0f));
   //      Vector3 target = Quaternion.Lerp(target, rot, lerpSpeed * Time.deltaTime);
         CamHeadParent.transform.rotation = Quaternion.Lerp(CamHeadParent.transform.rotation, rot, lerpSpeed * Time.deltaTime);
