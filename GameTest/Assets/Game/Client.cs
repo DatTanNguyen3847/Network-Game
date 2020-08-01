@@ -11,12 +11,14 @@ public class Client : MonoBehaviour
     public DebuggingScreen debugger;
     public PlayerControl player;
     public Transform player2;
+    public float moveSpeed = 0.2f;
 
     public NetworkStats networkStats;
 
     WebSocket websocket;
 
     public float fps = 60.0f;
+    private String player1Key = ""; 
 
     private void Awake()
     {
@@ -126,6 +128,7 @@ public class Client : MonoBehaviour
         var jsonNode = JSON.Parse(msg);
         Game game = new Game(jsonNode["gid"]);
         game.addPlayer(new Player(jsonNode["uid"]));
+        player1Key = jsonNode["uid"];
     }
 
     async void onDisconnect(string msg)
@@ -161,14 +164,23 @@ public class Client : MonoBehaviour
     async void onServerUpdate(string msg)
     {
         var jsonNode = JSON.Parse(msg);
-        // Debug.Log(jsonNode);
-        // var serverUpdate = jsonNode["sup"];
-        var playerJson = jsonNode["a9f6c206"];
-        Debug.Log(playerJson);
-        Vector3 p = player2.transform.position;
-        p.x = playerJson["po"]["x"];
-        p.z = playerJson["po"]["z"];
-        player2.transform.position = p;
+        String player2Key = "";
+        foreach (var key in jsonNode.Keys)
+        {
+            if (key != null && !key.Equals("ts") && !key.Equals(player1Key))
+            {
+                player2Key = key;
+                break;
+            }
+        }
+        if (!player2Key.Equals("")) {
+            var playerJson = jsonNode[player2Key];
+            Debug.Log(playerJson);
+            Vector3 p = player2.transform.position;
+            p.x = playerJson["po"]["x"] * moveSpeed;
+            p.z = playerJson["po"]["z"] * moveSpeed;
+            player2.transform.position = p;
+        }
         networkStats.msgRcv += 1;
     }
 
