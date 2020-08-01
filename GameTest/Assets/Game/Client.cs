@@ -10,6 +10,7 @@ public class Client : MonoBehaviour
 {
     public DebuggingScreen debugger;
     public PlayerControl player;
+    public Transform player2;
 
     public NetworkStats networkStats;
 
@@ -81,7 +82,7 @@ public class Client : MonoBehaviour
         {
             // Reading a plain text message
             var message = System.Text.Encoding.UTF8.GetString(bytes);
-            Debug.Log("OnMessage! " + message);
+            // Debug.Log("OnMessage! " + message);
             string[] parts = message.Split(new string[] { "::" }, StringSplitOptions.None);
             string cmd = parts[0];
             string msg = parts[1];
@@ -159,6 +160,15 @@ public class Client : MonoBehaviour
 
     async void onServerUpdate(string msg)
     {
+        var jsonNode = JSON.Parse(msg);
+        // Debug.Log(jsonNode);
+        // var serverUpdate = jsonNode["sup"];
+        var playerJson = jsonNode["a9f6c206"];
+        Debug.Log(playerJson);
+        Vector3 p = player2.transform.position;
+        p.x = playerJson["po"]["x"];
+        p.z = playerJson["po"]["z"];
+        player2.transform.position = p;
         networkStats.msgRcv += 1;
     }
 
