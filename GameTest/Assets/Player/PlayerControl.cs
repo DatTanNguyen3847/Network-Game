@@ -10,14 +10,13 @@ public class PlayerControl : MonoBehaviour
     public float speed;
     public float gravity;
     public float jumpHeight;
-   public Vector3 gravityF;
+    public Vector3 gravityF;
     bool OnGround = false;
     Vector3 move;
     public Transform spherePosition;
     public float sphereRadius;
     public LayerMask groundlayer;
-    public Image UIcrosshair;
-     
+
     public Vector4 StartColor, AffectedColor;
     [Header("CameraHead Control")]
     public Transform CamHeadParent;
@@ -25,12 +24,11 @@ public class PlayerControl : MonoBehaviour
     float X, Y;
     public float rotationSpeed, lerpSpeed;
     public Transform CamHeadPosition;
-    // Start is called before the first frame update
+    public DebuggingScreen debuggingScreen;
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Time.fixedDeltaTime = 1 / 100f;
-    //    StartColor = UIcrosshair.color;
     }
 
     // Update is called once per frame
@@ -40,61 +38,60 @@ public class PlayerControl : MonoBehaviour
         MovePlayer();
         ControlCamHead();
         Run();
-        AdjustUICrossHair();
         AdjustFOWCam();
     }
     private void FixedUpdate()
     {
-      
+
     }
 
     void MovePlayer()
     {
-     
-        if(OnGround && gravityF.y < 0)
+
+        if (OnGround && gravityF.y < 0)
         {
             gravityF.y = -5;
         }
-        
 
-      move= selfplayer.transform.forward * Input.GetAxis("Vertical") + selfplayer.transform.right * Input.GetAxis("Horizontal");
-        selfplayer.Move(move *speed* Time.deltaTime);
-    
+
+        move = selfplayer.transform.forward * Input.GetAxis("Vertical") + selfplayer.transform.right * Input.GetAxis("Horizontal");
+        selfplayer.Move(move * speed * Time.deltaTime);
+
         if (OnGround)
         {
-            if(Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Space))
             {
                 gravityF.y = jumpHeight;
             }
         }
-        
+
         gravityF.y -= gravity * Time.deltaTime;
         selfplayer.Move(gravityF * Time.deltaTime);
-        
+
+        // debuggingScreen.text.text = selfplayer.transform.position.ToString();
     }
 
     void ControlCamHead()
     {
         CamHeadParent.transform.position = CamHeadPosition.transform.position;
-        X += Input.GetAxis("Mouse X") * rotationSpeed*10f * Time.deltaTime;
-        Y -= Input.GetAxis("Mouse Y") * rotationSpeed*10f * Time.deltaTime;
+        X += Input.GetAxis("Mouse X") * rotationSpeed * 10f * Time.deltaTime;
+        Y -= Input.GetAxis("Mouse Y") * rotationSpeed * 10f * Time.deltaTime;
         Y = Mathf.Clamp(Y, -70f, 70f);
         Quaternion rot = Quaternion.Euler(new Vector3(Y, X, 0f));
-  //      Vector3 target = Quaternion.Lerp(target, rot, lerpSpeed * Time.deltaTime);
         CamHeadParent.transform.rotation = Quaternion.Lerp(CamHeadParent.transform.rotation, rot, lerpSpeed * Time.deltaTime);
         selfplayer.transform.rotation = Quaternion.Euler(0f, CamHeadParent.transform.eulerAngles.y, 0f);
     }
     bool CheckGround()
     {
         OnGround = Physics.CheckSphere(spherePosition.transform.position, sphereRadius, groundlayer);
-       
+
         return OnGround;
     }
 
     bool canRun = false;
     void Run()
     {
-        if(Input.GetKey(KeyCode.LeftShift)&& move != Vector3.zero)
+        if (Input.GetKey(KeyCode.LeftShift) && move != Vector3.zero)
         {
             canRun = true;
             speed = 3.5f;
@@ -118,19 +115,5 @@ public class PlayerControl : MonoBehaviour
             fow = Mathf.Lerp(fow, 60f, 8f * Time.deltaTime);
         }
         cam.fieldOfView = fow;
-    }
-
-
-    void AdjustUICrossHair()
-    {
-        if (canRun)
-        {
-
-            UIcrosshair.color = AffectedColor;
-        }
-        else
-        {
-            UIcrosshair.color = StartColor;
-        }
     }
 }
