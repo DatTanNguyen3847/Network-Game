@@ -7,11 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using AOT;
-using System.Runtime.InteropServices;
-using UnityEngine;
-
-namespace NativeWebSocket
+namespace Networking
 {
     public delegate void WebSocketOpenEventHandler();
     public delegate void WebSocketMessageEventHandler(byte[] data);
