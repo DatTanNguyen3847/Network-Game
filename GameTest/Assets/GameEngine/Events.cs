@@ -1,4 +1,4 @@
-namespace Networking
+namespace GameEngine
 {
     public static class Events
     {

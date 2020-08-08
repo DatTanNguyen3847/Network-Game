@@ -1,5 +1,7 @@
+using GameEngine;
 using Networking;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Debugging
@@ -8,10 +10,10 @@ namespace Debugging
     {
         public Text text;
 
-        public Client client;
+        [FormerlySerializedAs("clientGame")] public GameClient gameClient;
 
-        public void setClient(Client client) {
-            this.client = client;
+        public void setClient(GameClient gameClient) {
+            this.gameClient = gameClient;
         }
 
         private void Update()
@@ -23,7 +25,7 @@ namespace Debugging
         {
             string msg = "[network stats]\n"
                          + "latency\t=\t" + "\n"
-                         + "msg_rcv_count\t=\t" + client.networkStats.msgRcv +"\n"
+                         + "msg_rcv_count\t=\t" + gameClient.networkStats.msgRcv +"\n"
                          + "cpu_usage\t=\t" + "\n"
                          + "rrs\t=\t" + "\n"
                          + "heap_total\t=\t" + "\n"

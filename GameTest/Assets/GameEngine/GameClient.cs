@@ -1,13 +1,15 @@
 using System;
+using System.Text;
 using Debugging;
+using Models;
+using Networking;
 using SimpleJSON;
 using UnityEngine;
 
-namespace Networking
+namespace GameEngine
 {
-    public class Client : MonoBehaviour
+    public class GameClient
     {
-        public DebuggingScreen debugger;
         public PlayerControl player;
         public Transform player2;
         public float moveSpeed = 0.2f;
@@ -17,26 +19,23 @@ namespace Networking
         WebSocket _websocket;
 
         public float fps = 60.0f;
-        private String _player1Key = "";
+        public Player host;
+        public Game game;
 
-        private void Awake()
+        private readonly MonoBehaviour _renderer;
+
+        public GameClient(MonoBehaviour gameRenderer)
         {
+            _renderer = gameRenderer;
         }
 
-        void Start()
+        public void Start()
         {
             networkStats = new NetworkStats();
-
             ConnectToServer();
-            // create internal monitor network every 1000 ms
-            InvokeRepeating(nameof(SendPing), 0.0f, 1.0f);
-
-            // monitor cpu usage every 1000ms
-            InvokeRepeating(nameof(SendCpuUsage), 0.0f, 1.0f);
-
         }
 
-        private void Update()
+        public void Update()
         {
 #if !UNITY_WEBGL || UNITY_EDITOR
             _websocket.DispatchMessageQueue();
@@ -44,20 +43,9 @@ namespace Networking
             // Debug.Log("Update time :" + Time.deltaTime);
         }
 
-        void FixedUpdate()
+        public void FixedUpdate()
         {
             // Debug.Log("FixedUpdate time :" + Time.deltaTime);
-        }
-
-        public async void SendPing()
-        {
-            SendMsg(Events.Ping + "::" + DateTime.Now.Millisecond.ToString());
-            debugger.Log();
-        }
-
-        public async void SendCpuUsage()
-        {
-            SendMsg(Events.CpuUsage + "::" + DateTime.Now.Millisecond.ToString());
         }
 
         private async void ConnectToServer()
@@ -69,127 +57,123 @@ namespace Networking
                 Debug.Log("Connection open!");
             };
 
-            _websocket.OnError += (e) =>
+            _websocket.OnError += e =>
             {
                 Debug.Log("Error! " + e);
             };
 
-            _websocket.OnClose += (e) =>
+            _websocket.OnClose += e =>
             {
                 Debug.Log("Connection closed!");
             };
 
-            _websocket.OnMessage += (bytes) =>
+            _websocket.OnMessage += bytes =>
             {
                 // Reading a plain text message
-                var message = System.Text.Encoding.UTF8.GetString(bytes);
-                // Debug.Log("OnMessage! " + message);
-                string[] parts = message.Split(new string[] { "::" }, StringSplitOptions.None);
-                string cmd = parts[0];
-                string msg = parts[1];
+                var message = Encoding.UTF8.GetString(bytes);
+                var parts = message.Split(new[] { "::" }, StringSplitOptions.None);
+                var cmd = parts[0];
+                var msg = parts[1];
                 switch (cmd)
                 {
                     case Events.Connection:
-                        this.OnConnect(msg);
+                        OnConnect(msg);
                         break;
                     case Events.Disconnect:
-                        this.OnDisconnect(msg);
+                        OnDisconnect(msg);
                         break;
                     case Events.Connected:
-                        this.OnConnected(msg);
+                        OnConnected(msg);
                         break;
                     case Events.AddPlayer:
-                        this.OnAddPlayer(msg);
+                        OnAddPlayer(msg);
                         break;
                     case Events.RemovePlayer:
-                        this.OnRemovePlayer(msg);
+                        OnRemovePlayer(msg);
                         break;
                     case Events.Pong:
-                        this.OnPong(msg);
+                        OnPong(msg);
                         break;
                     case Events.ClientUpdate:
-                        this.OnClientUpdate(msg);
+                        OnClientUpdate(msg);
                         break;
                     case Events.ServerUpdate:
-                        this.OnServerUpdate(msg);
+                        OnServerUpdate(msg);
                         break;
                     case Events.CpuUsage:
-                        this.OnCpuUsage(msg);
+                        OnCpuUsage(msg);
                         break;
                 }
             };
             await _websocket.Connect();
         }
 
-        private async void OnConnect(string msg)
-        {
-            networkStats.msgRcv += 1;
-            var jsonNode = JSON.Parse(msg);
-            Game.Game game = new Game.Game(jsonNode["gid"]);
-            game.addPlayer(new Player(jsonNode["uid"]));
-            _player1Key = jsonNode["uid"];
-        }
-
-        private async void OnDisconnect(string msg)
+        private void OnConnect(string msg)
         {
             networkStats.msgRcv += 1;
         }
 
-        private async void OnConnected(string msg)
+        private void OnDisconnect(string msg)
         {
             networkStats.msgRcv += 1;
         }
 
-        private async void OnAddPlayer(string msg)
-        {
-            networkStats.msgRcv += 1;
-        }
-
-        private async void OnRemovePlayer(string msg)
-        {
-            networkStats.msgRcv += 1;
-        }
-
-        private async void OnPong(string msg)
-        {
-            networkStats.msgRcv += 1;
-        }
-
-        private async void OnClientUpdate(string msg)
-        {
-            networkStats.msgRcv += 1;
-        }
-
-        private async void OnServerUpdate(string msg)
+        private void OnConnected(string msg)
         {
             var jsonNode = JSON.Parse(msg);
-            String player2Key = "";
-            foreach (var key in jsonNode.Keys)
+            // parsing the game information to create a host and a game
+            game = new Game(jsonNode[Field.GameId]);
+            host = new Player(_renderer, jsonNode[Field.UserId]);
+            game.AddPlayer(host);
+            foreach (string playerId in jsonNode[Field.PlayerIds].Values)
             {
-                if (key != null && !key.Equals("ts") && !key.Equals(_player1Key))
+                if (!playerId.Equals(host.playerId))
                 {
-                    player2Key = key;
-                    break;
+                    game.AddPlayer(new Player(_renderer, playerId));
                 }
             }
-            if (!player2Key.Equals("")) {
-                var playerJson = jsonNode[player2Key];
-                Debug.Log(playerJson);
-                var transform1 = player2.transform;
-                Vector3 p = transform1.position;
-                p.x = playerJson["po"]["x"] * moveSpeed;
-                p.z = playerJson["po"]["z"] * moveSpeed;
-                transform1.position = p;
-            }
             networkStats.msgRcv += 1;
         }
 
-        private async void OnCpuUsage(string msg)
+        private void OnAddPlayer(string msg)
         {
             networkStats.msgRcv += 1;
         }
 
-        private async void SendMsg(string msg)
+        private void OnRemovePlayer(string msg)
+        {
+            networkStats.msgRcv += 1;
+        }
+
+        private void OnPong(string msg)
+        {
+            networkStats.msgRcv += 1;
+        }
+
+        private void OnClientUpdate(string msg)
+        {
+            networkStats.msgRcv += 1;
+        }
+
+        private void OnServerUpdate(string msg)
+        {
+            // Debug.Log(msg);
+            var jsonNode = JSON.Parse(msg);
+            foreach (var localPlayer in game.players)
+            {
+                var info = jsonNode[localPlayer.playerId];
+                localPlayer.SetColor(info[Field.Color]);
+                localPlayer.SetPosition(info[Field.Pos]["x"], info[Field.Pos]["y"]);
+            }
+            networkStats.msgRcv += 1;
+        }
+
+        private void OnCpuUsage(string msg)
+        {
+            networkStats.msgRcv += 1;
+        }
+
+        public async void SendMsg(string msg)
         {
             if (_websocket.State == WebSocketState.Open)
             {
