@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using GameEngine;
 
 namespace Models
 {
@@ -6,7 +7,8 @@ namespace Models
     {
         public string gameId;
         public readonly LinkedList<Player> players = new LinkedList<Player>();
-        public Player host;
+        public Host host;
+        public GameClient gameClient;
         public Game(string gameId)
         {
             this.gameId = gameId;
@@ -18,9 +20,11 @@ namespace Models
             player.SetGame(this);
         }
 
-        public void SetHost(Player hostPlayer)
+        public void SetHost(Host hostPlayer)
         {
+            this.players.AddLast(hostPlayer);
             host = hostPlayer;
+            host.game = this;
         }
 
         public void Update()

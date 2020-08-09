@@ -19,7 +19,7 @@ namespace GameEngine
         WebSocket _websocket;
 
         public float fps = 60.0f;
-        public Player host;
+        public Host host;
         public Game game;
 
         private readonly MonoBehaviour _renderer;
@@ -41,6 +41,7 @@ namespace GameEngine
             _websocket.DispatchMessageQueue();
 #endif
             // Debug.Log("Update time :" + Time.deltaTime);
+            game?.Update();
         }
 
         public void FixedUpdate()
@@ -123,8 +124,10 @@ namespace GameEngine
             var jsonNode = JSON.Parse(msg);
             // parsing the game information to create a host and a game
             game = new Game(jsonNode[Field.GameId]);
-            host = new Player(_renderer, jsonNode[Field.UserId]);
-            game.AddPlayer(host);
+            game.gameClient = this;
+
+            host = new Host(_renderer, jsonNode[Field.UserId]);
+            game.SetHost(host);
             foreach (string playerId in jsonNode[Field.PlayerIds].Values)
             {
                 if (!playerId.Equals(host.playerId))
@@ -163,7 +166,14 @@ namespace GameEngine
             {
                 var info = jsonNode[localPlayer.playerId];
                 localPlayer.SetColor(info[Field.Color]);
-                localPlayer.SetPosition(info[Field.Pos]["x"], info[Field.Pos]["y"]);
+                if (localPlayer.Equals(host))
+                {
+                    host.SetPosition(info[Field.Pos]["x"], info[Field.Pos]["y"]);
+                }
+                else
+                {
+                    localPlayer.SetPosition(info[Field.Pos]["x"], info[Field.Pos]["y"]);
+                }
             }
             networkStats.msgRcv += 1;
         }

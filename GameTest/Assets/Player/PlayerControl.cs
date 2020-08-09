@@ -23,7 +23,8 @@ public class PlayerControl : MonoBehaviour
     public Transform CamHeadParent;
     public Camera cam;
     float X, Y;
-    public float rotationSpeed, lerpSpeed;
+    public float rotationSpeed;
+    public float lerpSpeed;
     public Transform CamHeadPosition;
     public DebuggingScreen debuggingScreen;
     void Start()

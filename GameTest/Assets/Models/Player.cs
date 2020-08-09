@@ -5,7 +5,7 @@ namespace Models
 {
     public class Player
     {
-        private const float BOX_UNIT = 16.0f;
+        protected const float BOX_UNIT = 16.0f;
         public readonly string playerId;
         public int x = 0;
         public int y = 0;
@@ -18,7 +18,8 @@ namespace Models
             this.playerId = playerId;
             gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
             gameObject.transform.parent = renderer.transform;
-            gameObject.transform.position = new Vector3(0, 0.5f, 0);
+            gameObject.transform.position = new Vector3(0.5f, 0.5f, 0.5f);
+            gameObject.name = "player-" + playerId;
         }
 
         public void Update()

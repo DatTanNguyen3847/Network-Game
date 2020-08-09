@@ -13,6 +13,7 @@ namespace GameRender
 
         public GameClient gameClient;
 
+
         private void Awake()
         {
             gameClient = new GameClient(this);
@@ -20,6 +21,9 @@ namespace GameRender
 
         private void Start()
         {
+            // set the frame per second
+            Time.fixedDeltaTime = 1 / 60f;
+
             // Create a plane for game
             GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.parent = this.transform;
@@ -37,12 +41,12 @@ namespace GameRender
 
         void Update()
         {
-            gameClient.Update();
+            gameClient?.Update();
         }
 
         private void FixedUpdate()
         {
-            gameClient.FixedUpdate();
+            gameClient?.FixedUpdate();
         }
 
 
